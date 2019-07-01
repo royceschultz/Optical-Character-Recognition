@@ -10,10 +10,11 @@ G = generate.Gen()
 letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 fonts = ['/Library/Fonts/Arial.ttf']
 
-set,label = G.generateNumpySet(2000,G.letters, G.fonts)
+set,label = G.generateNumpySet(5000,G.letters, G.fonts)
+set = set/255.0
 print(set.shape, label.shape)
 
-set = set/255.0
+
 
 plt.figure(figsize=(10,10))
 for i in range(25):
@@ -28,7 +29,8 @@ for i in range(25):
 
 
 model = keras.Sequential([
-    keras.layers.Flatten(input_shape=(32, 32, 3)),
+    keras.layers.Conv2D(64, kernel_size=3, activation='relu', input_shape=(G.size[0], G.size[1], 3)),
+    keras.layers.Flatten(),
     keras.layers.Dense(256, activation=tf.nn.relu),
     keras.layers.Dense(128, activation=tf.nn.relu),
     keras.layers.Dense(len(G.letters), activation=tf.nn.softmax)
@@ -40,7 +42,16 @@ model.compile(optimizer='adam',
 
 model.summary()
 
-model.fit(set, label, epochs=25)
+set = set/255.0
+test_loss, test_acc = model.evaluate(set, label)
+setSize = 5000
+while test_acc < .8:
+    model.fit(set, label, epochs=3)
+    del set
+    del label
+    set,label = G.generateNumpySet(setSize,G.letters, G.fonts) #Create new, smaller set to validate on
+    set = set/255.0
+    test_loss, test_acc = model.evaluate(set, label)
 
 def plot_image(i, predictions_array, true_label, img):
     predictions_array, true_label, img = predictions_array[i], true_label[i], img[i]
@@ -74,7 +85,8 @@ def plot_value_array(i, predictions_array, true_label):
     thisplot[true_label].set_color('blue')
 
 
-set,label = G.generateNumpySet(100,G.letters, G.fonts) #Create new, smaller set to validate on
+set,label = G.generateNumpySet(1000,G.letters, G.fonts) #Create new, smaller set to validate on
+set = set/255.0
 
 test_loss, test_acc = model.evaluate(set, label)
 print('Test accuracy:', test_acc)

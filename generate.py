@@ -4,8 +4,20 @@ import numpy as np
 
 class Gen:
     size = (32, 32)
-    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' #abcdefghijklmnopqrstuvwxyz
-    fonts = ['/Library/Fonts/Arial.ttf']
+    letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    fonts = ['/Library/Fonts/Arial.ttf',
+        '/Library/Fonts/Times New Roman.ttf',
+        '/Library/Fonts/Apple Chancery.ttf',
+        '/Library/Fonts/AppleMyungjo.ttf',
+        '/Library/Fonts/AppleMyungjo.ttf',
+        '/Library/Fonts/BigCaslon.ttf',
+        '/Library/Fonts/Bradley Hand Bold.ttf',
+        '/Library/Fonts/Brush Script.ttf',
+        '/Library/Fonts/Chalkduster.ttf',
+        '/Library/Fonts/Georgia.ttf',
+        '/Library/Fonts/Herculanum.ttf',
+        '/Library/Fonts/Luminari.ttf'
+        ]
 
     def char2idx(self,c):
         for i in range(len(self.letters)):
@@ -13,13 +25,15 @@ class Gen:
                 return i
 
     def generateLetter(self, letter, name, font, fontSize, txtColor, backColor, skew, noise, save):
+        if random.random() < .5:
+            letter = letter.lower()
         filename = 'folder/' + letter + '-' + name + '.png'
 
         img = Image.new('RGB', self.size, color = backColor)
 
         fnt = ImageFont.truetype(font,24)
         d = ImageDraw.Draw(img)
-        d.text((random.randint(5,10), random.randint(5,10)), letter, font=fnt, fill=txtColor)
+        d.text((random.randint(1,4), -1), letter, font=fnt, fill=txtColor)
 
         img = img.rotate(skew, fillcolor=backColor)
 
@@ -38,16 +52,38 @@ class Gen:
     def randomColor(self):
         return (random.randint(0,255), random.randint(0,255), random.randint(0,255))
 
+    def colorDist(self,x,y):
+        s = 0
+        for i in range(len(x)):
+            s += abs(x[i]-y[i])
+        return s
+
     def generateSet(self, n, letters, fonts):
         for i in range(n):
-            self.generateLetter(random.choice(letters),str(i),random.choice(fonts),24, self.randomColor(), self.randomColor(), random.randint(-15,15), 10, True)
+            textColor = self.randomColor()
+            backColor = self.randomColor()
+
+            #textColor = (0,0,0)
+            #backColor = (255,255,255)
+            while self.colorDist(textColor,backColor) < 100:
+                backColor = self.randomColor()
+            self.generateLetter(random.choice(letters),str(i),random.choice(fonts),10, textColor, backColor, random.randint(-5,5), 10, True)
 
     def generateNumpySet(self, n, letters, fonts):
         set = []
         label = []
         for k in range(n):
-            print("Generating training set: ", k,'/',n)
+            print("Generating training set: ", k,'/',n, end='\r')
             randLetter = random.choice(letters)
-            set.append(self.generateLetter(randLetter,'',random.choice(fonts),24, (0,0,0), (255,255,255), random.randint(-10,10), 50, False))
+            textColor = self.randomColor()
+            backColor = self.randomColor()
+
+            #textColor = (0,0,0)
+            #backColor = (255,255,255)
+            while self.colorDist(textColor,backColor) < 100:
+                backColor = self.randomColor()
+
+            set.append(self.generateLetter(randLetter,'',random.choice(fonts),10, textColor, backColor, random.randint(-5,5), 30, False))
             label.append(self.char2idx(randLetter))
+        print(' ')
         return (np.array(set),np.array(label))
