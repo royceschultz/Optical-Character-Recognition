@@ -1,57 +1,82 @@
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.callbacks import TensorBoard
 
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import generate
+import time
+
+t = str(int(time.time()))
+RUN_NAME = 'Training Set' + t
+MODEL_NAME = 'MyTrainedModel'+t+'.ckpt'
 
 G = generate.Gen()
-letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-fonts = ['/Library/Fonts/Arial.ttf']
+ValidationSet,ValidationLabel = G.generateNumpySet(1000,G.letters, G.fonts)
+ValidationSet = ValidationSet/255.0
 
-set,label = G.generateNumpySet(5000,G.letters, G.fonts)
-set = set/255.0
-print(set.shape, label.shape)
-
-
-
+# Plot labeled Images
 plt.figure(figsize=(10,10))
 for i in range(25):
     plt.subplot(5,5,i+1)
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
-    plt.imshow(set[i], cmap=plt.cm.binary)
-    plt.xlabel(G.letters[label[i]])
-#plt.show()
+    plt.imshow(ValidationSet[i], cmap=plt.cm.binary)
+    plt.xlabel(G.letters[ValidationLabel[i]])
+#plt.show() #(But not right now)
 
-
-
-model = keras.Sequential([
-    keras.layers.Conv2D(64, kernel_size=3, activation='relu', input_shape=(G.size[0], G.size[1], 3)),
-    keras.layers.Flatten(),
-    keras.layers.Dense(256, activation=tf.nn.relu),
-    keras.layers.Dense(128, activation=tf.nn.relu),
-    keras.layers.Dense(len(G.letters), activation=tf.nn.softmax)
-])
-
+model = keras.Sequential()
+model.add(keras.layers.Conv2D(64, kernel_size=3, activation='relu', input_shape=(G.size[0], G.size[1], 3)))
+model.add(keras.layers.Conv2D(64, kernel_size=3, activation='relu'))
+model.add(keras.layers.Flatten())
+model.add(keras.layers.Dense(128, activation=tf.nn.relu))
+model.add(keras.layers.Dropout(0.1))
+model.add(keras.layers.Dense(128, activation=tf.nn.relu))
+model.add(keras.layers.Dropout(0.1))
+model.add(keras.layers.Dense(len(G.letters), activation=tf.nn.softmax))
 model.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
-
+#Keras Logger
+logger = keras.callbacks.TensorBoard(
+    log_dir = 'logs/' + RUN_NAME,
+    write_graph = True
+)
+earlyStop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=2)
 model.summary()
 
-set = set/255.0
-test_loss, test_acc = model.evaluate(set, label)
-setSize = 5000
-while test_acc < .8:
-    model.fit(set, label, epochs=3)
+set,label = G.generateNumpySet(5000,G.letters, G.fonts)
+#Pre-training
+test_acc = 0.0
+while test_acc < 0.1:
+    model.fit(set, label,
+        epochs=10,
+        callbacks=[logger],
+        validation_data=(ValidationSet,ValidationLabel)
+    )
+    test_loss, test_acc = model.evaluate(set, label)
+setSize = 10000
+train_acc = 1
+best = 0
+while test_acc < .9:
     del set
     del label
     set,label = G.generateNumpySet(setSize,G.letters, G.fonts) #Create new, smaller set to validate on
     set = set/255.0
-    test_loss, test_acc = model.evaluate(set, label)
+    #G.shuffle(set,label)
+    model.fit(set, label,
+        epochs=100,
+        callbacks=[logger, earlyStop],
+        validation_data=(ValidationSet,ValidationLabel)
+    )
+    test_loss, test_acc = model.evaluate(ValidationSet, ValidationLabel, callbacks=[logger])
+    if test_acc > best:
+        print('Saved model to disc')
+        model.save('Models/'+MODEL_NAME)
+        best = test_acc
+
 
 def plot_image(i, predictions_array, true_label, img):
     predictions_array, true_label, img = predictions_array[i], true_label[i], img[i]
@@ -85,13 +110,7 @@ def plot_value_array(i, predictions_array, true_label):
     thisplot[true_label].set_color('blue')
 
 
-set,label = G.generateNumpySet(1000,G.letters, G.fonts) #Create new, smaller set to validate on
-set = set/255.0
-
-test_loss, test_acc = model.evaluate(set, label)
-print('Test accuracy:', test_acc)
-
-predictions = model.predict(set)
+predictions = model.predict(ValidationSet)
 
 num_rows = 5
 num_cols = 3
@@ -99,7 +118,7 @@ num_images = num_rows*num_cols
 plt.figure(figsize=(2*2*num_cols, 2*num_rows))
 for i in range(num_images):
   plt.subplot(num_rows, 2*num_cols, 2*i+1)
-  plot_image(i, predictions, label, set)
+  plot_image(i, predictions, ValidationLabel, ValidationSet)
   plt.subplot(num_rows, 2*num_cols, 2*i+2)
-  plot_value_array(i, predictions, label)
+  plot_value_array(i, predictions, ValidationLabel)
 plt.show()

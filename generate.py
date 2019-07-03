@@ -1,6 +1,7 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 import random
 import numpy as np
+import os
 
 class Gen:
     size = (32, 32)
@@ -23,7 +24,7 @@ class Gen:
         for i in range(len(self.letters)):
             if self.letters[i] == c:
                 return i
-
+    last = 'c'
     def generateLetter(self, letter, name, font, fontSize, txtColor, backColor, skew, noise, save):
         if random.random() < .5:
             letter = letter.lower()
@@ -33,7 +34,7 @@ class Gen:
 
         fnt = ImageFont.truetype(font,24)
         d = ImageDraw.Draw(img)
-        d.text((random.randint(1,4), -1), letter, font=fnt, fill=txtColor)
+        d.text((random.randint(0,15), 3), letter, font=fnt, fill=txtColor)
 
         img = img.rotate(skew, fillcolor=backColor)
 
@@ -58,6 +59,18 @@ class Gen:
             s += abs(x[i]-y[i])
         return s
 
+    def shuffle(self,x,y):
+        x = list(x)
+        y = list(y)
+        if len(x) == len(y):
+            print('shuffling...')
+            for i in range(len(x)):
+                r = random.randint(0,len(x)-1)
+                if r != i:
+                    x[i],x[r] = x[r],x[i]
+                    y[i],y[r] = y[r],y[i]
+        return np.array(x), np.array(y)
+
     def generateSet(self, n, letters, fonts):
         for i in range(n):
             textColor = self.randomColor()
@@ -67,7 +80,7 @@ class Gen:
             #backColor = (255,255,255)
             while self.colorDist(textColor,backColor) < 100:
                 backColor = self.randomColor()
-            self.generateLetter(random.choice(letters),str(i),random.choice(fonts),10, textColor, backColor, random.randint(-5,5), 10, True)
+            self.generateLetter(random.choice(letters),str(i),random.choice(fonts),10, textColor, backColor, random.randint(-15,15), 10, True)
 
     def generateNumpySet(self, n, letters, fonts):
         set = []
@@ -83,7 +96,25 @@ class Gen:
             while self.colorDist(textColor,backColor) < 100:
                 backColor = self.randomColor()
 
-            set.append(self.generateLetter(randLetter,'',random.choice(fonts),10, textColor, backColor, random.randint(-5,5), 30, False))
+            set.append(self.generateLetter(randLetter,'',random.choice(fonts),random.randint(10,14), textColor, backColor, random.randint(-20,20), 30, False))
             label.append(self.char2idx(randLetter))
         print(' ')
         return (np.array(set),np.array(label))
+
+    def generateFromFolder(self,folderName):
+        i = 0
+        out = []
+        labels = []
+        # = '/Users/royceschultz/Documents/untitled folder/'
+        path = os.path.dirname(os.path.realpath(__file__))
+        path += '/' + folderName
+        for filename in os.listdir(path):
+            if filename[-4:] == '.png':
+                src = folderName + '/' + filename
+                img = Image.open(src)
+                img = img.convert('RGB')
+                img = ImageEnhance.Contrast(img).enhance(2.0)
+                out.append(np.array(img))
+                labels.append(self.char2idx(filename[0]))
+                i += 1
+        return np.array(out), np.array(labels)
