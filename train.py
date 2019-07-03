@@ -25,7 +25,7 @@ for i in range(25):
     plt.grid(False)
     plt.imshow(ValidationSet[i], cmap=plt.cm.binary)
     plt.xlabel(G.letters[ValidationLabel[i]])
-#plt.show() #(But not right now)
+plt.show() #(But not right now)
 
 model = keras.Sequential()
 model.add(keras.layers.Conv2D(64, kernel_size=3, activation='relu', input_shape=(G.size[0], G.size[1], 3)))
