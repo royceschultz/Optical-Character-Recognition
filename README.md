@@ -2,11 +2,12 @@
 
 ## Abstract
 
-This project explores low cost methods for pre-training more complex models. Generating training data with human work is very slow and costly, but the problem may be simulated using other tools, allowing limitless cheap and unique training data. This implementation generates images of letters to train a keras model. After training exlusively on generated images, it is able to achieve 46% accuracy on a curated set of images from building and road signs.
+This project explores low cost methods for pre-training AI models for more complex problems. Generating training data with human work is very slow and costly, but if the problem can be simulated using other tools, limitless, cheap and unique training data can be generated. This implementation generates images of letters to train a keras model. After training exlusively on generated images, it is able to achieve 46% accuracy on a hand labeled set of images from building and road signs.
 
 ## Training data
 
 The image library PIL is used to generate training images of text. In attempt to gain generality, randomized fonts, size, foreground and background colors, position, and noise is added.
+
 ![TrainingData](/Present/TrainingDataDisplay.png)
 
 ## TensorBoard
@@ -24,7 +25,7 @@ The most successful model achieved 90% accuracy on a unique, generated validatio
 ### Input: (32,32,3)
 
 ### 2x 2D Convolutional Layer
-### 2x Dense Layer
+### 2x Dense Layer with 10% dropout rate (64)
 
 ### Output Layer: ()
 
