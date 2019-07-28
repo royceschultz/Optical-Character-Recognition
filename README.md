@@ -10,13 +10,19 @@ The image library PIL is used to generate training images of text. In attempt to
 
 ![TrainingData](/Present/TrainingDataDisplay.png)
 
-## TensorBoard
+## Evaluating the Model
+
+### TensorBoard
 
 To determine the quality of the model, TensorBoard is used to visualize the training progress of each model.
 
 ![ValidationAccuracy](/Present/ValidationAccuracy.png)
 
 ![ValidationLoss](/Present/ValidationLoss.png)
+
+### Confusion matrix
+
+![Confusion Matrix](/Present/ConfusionMatrix.png)
 
 ## Model Structure
 
