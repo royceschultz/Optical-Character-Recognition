@@ -8,7 +8,7 @@ This project explores low cost methods for pre-training AI models for more compl
 
 Python Imaging Library (PIL) is used to generate training images of text. In attempt to gain some generality, randomized fonts, size, foreground and background colors, position, rotation and noise is added.
 
-![TrainingData](/Present/TrainingDataDisplay.png)
+![TrainingData](/Present/TrainingDataDisplay.png?)
 
 ## Evaluating the Model
 
@@ -16,15 +16,15 @@ Python Imaging Library (PIL) is used to generate training images of text. In att
 
 TensorBoard is used to compare the relative progress of different model structures.
 
-![ValidationAccuracy](/Present/ValidationAccuracy.png)
+![ValidationAccuracy](/Present/ValidationAccuracy.png?)
 
-![ValidationLoss](/Present/ValidationLoss.png)
+![ValidationLoss](/Present/ValidationLoss.png?)
 
 ### Confusion matrix
 
 A confusion matrix visualizes the mistakes the AI model is making. Often these mistakes are understandable as the letters have similar features.
 
-![Confusion Matrix](/Present/ConfusionMatrix.png)
+![Confusion Matrix](/Present/ConfusionMatrix.png?)
 
 ## Model Structure
 
@@ -39,10 +39,10 @@ The most successful model achieved 90% accuracy on a unique, generated validatio
 
 ## Validation Set
 
-![ModelPrediction](/Present/PredictDisplay.png)
+![ModelPrediction](/Present/PredictDisplay.png?)
 
 ## Generalizing to larger problems
 
 After training exclusively on generated images, the model was able to correctly identify 46% of letters in a curated set of license plates, building names, and road signs. This method provides a low cost method of pre training a model for a larger problem.
 
-![ModelPrediction](/Present/GeneralizeDisplay.png)
+![ModelPrediction](/Present/GeneralizeDisplay.png?)
